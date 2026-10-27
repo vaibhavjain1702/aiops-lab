@@ -211,6 +211,12 @@ The isolated code runner executes generated code in a separate container with:
 | `evaluation/live_runs.jsonl` | Live evaluation log |
 | `docs/evaluation_graphs/` | Generated PNG charts |
 
+## Project Specification
+
+The full project requirements and design (Weeks 1 to 5) are in
+[`docs/AI_DevOps_Assistant_Master_Project_Specification_Weeks_1_to_5.docx`](docs/AI_DevOps_Assistant_Master_Project_Specification_Weeks_1_to_5.docx).
+UI feature notes are in [`docs/ui_features.md`](docs/ui_features.md).
+
 ## Stop / Reset
 
 ```bash
