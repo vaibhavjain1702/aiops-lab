@@ -1,0 +1,74 @@
+Q: What is Docker and why is it used in DevOps?
+A: Docker is a containerization platform that packages applications with their dependencies into portable containers. In DevOps, Docker ensures consistent environments across development, testing, and production, enabling faster deployments and better resource utilization. Containers are lightweight compared to VMs and start in seconds.
+
+Q: What is the difference between a Docker image and a Docker container?
+A: A Docker image is a read-only template containing application code, runtime, libraries, and configuration. A container is a running instance of an image. You can create multiple containers from the same image. Images are built from Dockerfiles, while containers are created using `docker run`.
+
+Q: How does Docker Compose work?
+A: Docker Compose defines multi-container applications using a YAML file (docker-compose.yml). It specifies services, networks, volumes, and environment variables. A single `docker compose up -d --build` command builds and starts all services. Services communicate via Docker network using service names.
+
+Q: What is Prometheus and how does it collect metrics?
+A: Prometheus is an open-source monitoring system that collects metrics via a pull model — it scrapes HTTP endpoints at configured intervals. Metrics are stored as time series with labels. PromQL is used for querying. It supports four metric types: Counter, Gauge, Histogram, and Summary.
+
+Q: How does Grafana integrate with Prometheus?
+A: Grafana connects to Prometheus as a data source and uses PromQL queries to create visualizations. Dashboards can display graphs, tables, heatmaps, and gauges. Alerting rules can be configured per panel, and dashboards can be shared and exported.
+
+Q: What is RAG (Retrieval-Augmented Generation)?
+A: RAG enhances LLM responses by retrieving relevant information from an external knowledge base before generating an answer. The process: question → embedding → vector similarity search → retrieve context → grounded generation. RAG reduces hallucination and provides source-backed answers.
+
+Q: How does RAG differ from fine-tuning?
+A: RAG retrieves external context at query time without modifying the model. Fine-tuning changes the model's weights using training data. RAG is easier to update (just add documents), requires no GPU training, and maintains source attribution. Fine-tuning creates a specialized model but requires significant compute.
+
+Q: What is cosine similarity and how is it used in RAG?
+A: Cosine similarity measures the angle between two vectors, ranging from -1 to 1. In RAG, document chunks and queries are converted to embedding vectors, and cosine similarity identifies the most relevant chunks. Higher similarity means more relevant content. ChromaDB uses cosine distance (1 - similarity).
+
+Q: What is ChromaDB?
+A: ChromaDB is an open-source vector database for AI applications. It stores embeddings with metadata, supports efficient similarity search, and offers persistent storage. In this project, it stores DevOps knowledge chunks in a collection using cosine similarity space.
+
+Q: What is text chunking and why is it important?
+A: Chunking breaks large documents into smaller pieces for embedding and retrieval. Effective chunking balances precision (smaller chunks) with context (larger chunks). Overlap between chunks maintains continuity. Common strategies include fixed-size, sentence-based, and semantic chunking.
+
+Q: What is an embedding model and how is it different from a generation model?
+A: An embedding model (e.g., nomic-embed-text) converts text into dense vector representations for similarity search. A generation model (e.g., qwen2.5:3b) produces text output. Embedding models create vectors; generation models create language. They serve different roles and must remain separated.
+
+Q: What is Ollama?
+A: Ollama is a tool for running large language models locally. It provides a REST API for model management and inference, supports multiple models, and runs on various platforms. Default port is 11434. It handles model loading, generation, and embedding operations.
+
+Q: What is FastAPI?
+A: FastAPI is a modern Python web framework for building APIs. It features automatic documentation (Swagger/ReDoc), data validation via Pydantic, async support, dependency injection, and high performance. It's used as the application layer in this project.
+
+Q: How do microservices communicate in a Docker environment?
+A: In Docker, services communicate using Docker network service names. For example, the app container can reach the retrieval service at `http://retrieval:8001`. Port mapping (`host:container`) exposes services to the host. Container-to-container communication uses internal networks.
+
+Q: What are health checks in a containerized application?
+A: Health checks verify that services are running correctly. Each service exposes a `/health` endpoint that returns its status, dependencies, and key configuration. Docker can use HEALTHCHECK instructions to automatically restart unhealthy containers.
+
+Q: What is the ingestion pipeline?
+A: The ingestion pipeline processes documents for the knowledge base: extraction (read PDF/TXT/MD) → normalization (clean text) → chunking (split into pieces) → embedding (convert to vectors) → indexing (store in ChromaDB). Metadata like source, page, and chunk index is preserved.
+
+Q: What are guardrails in an AI application?
+A: Guardrails are controls that manage what an AI application accepts and returns. Input guardrails validate questions (empty, too long, injection attempts, out of scope). Output guardrails check responses (empty, error leakage, groundedness). They prevent undesirable behavior.
+
+Q: What is prompt injection and how is it prevented?
+A: Prompt injection is an attack where malicious instructions are embedded in user input to manipulate the LLM's behavior (e.g., "ignore previous instructions"). Prevention includes pattern matching for known injection phrases, input validation, and blocking suspicious requests before they reach the model.
+
+Q: What is the difference between input and output guardrails?
+A: Input guardrails validate user questions before processing (empty check, length limit, injection detection, scope check). Output guardrails validate model responses before returning them (empty check, error leakage detection, groundedness verification). Both are needed for a controlled application.
+
+Q: How should evaluation metrics be interpreted?
+A: Automated metrics like correctness (token F1), relevance (keyword overlap), and hallucination rate (unsupported claims) are proxy measures, not absolute truth. They should be labeled as proxies. Human semantic review is needed for true evaluation. Results should state model, category, RAG state, and hardware.
+
+Q: What is the purpose of category-wise model evaluation?
+A: Different models may excel at different types of tasks. Category-wise evaluation (Explanation, Code Retrieval, Dependency Understanding, Bug Analysis, Code Generation, Refactoring, RAG Questions) reveals which model is best for each task type, rather than just reporting overall accuracy.
+
+Q: Why should generated code not be executed in the main application?
+A: Generated code may contain dangerous operations (file access, network calls, infinite loops). An isolated code runner container with resource limits, AST validation, and import restrictions provides a safer execution environment. This is still a classroom tool, not production-grade security.
+
+Q: What is the purpose of the isolated code runner?
+A: The code runner executes generated code in a separate container with security restrictions: read-only filesystem, memory/CPU limits, process limits, dangerous import rejection, and execution timeouts. It validates code via AST before execution and returns structured pass/fail results.
+
+Q: How does the RAG vs Non-RAG comparison work?
+A: With RAG enabled, the system retrieves context from the knowledge base and includes it in the LLM prompt. Without RAG, the LLM answers using only its training knowledge. Comparing both reveals how retrieval affects response quality, accuracy, latency, and hallucination rate.
+
+Q: What is P95 latency?
+A: P95 (95th percentile) latency means 95% of requests complete within this time. It's more informative than average latency because it captures tail latency — the slow requests that affect user experience. It cannot be meaningfully calculated from a single run.

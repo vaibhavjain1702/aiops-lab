@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI DevOps Technical Support Assistant — Local RAG-powered assistant with multi-model evaluation">
+    <title>AI DevOps Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a3e;
+            --bg-card: #1e1e45;
+            --bg-input: #252550;
+            --text-primary: #e8e8ff;
+            --text-secondary: #a0a0d0;
+            --text-muted: #6060a0;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-info: #3b82f6;
+            --accent-pink: #ec4899;
+            --border: #2a2a5e;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .nav {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .nav-brand .logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .nav-health {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .health-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-success);
+            animation: pulse 2s infinite;
+        }
+
+        .health-dot.error { background: var(--accent-danger); }
+        .health-dot.warning { background: var(--accent-warning); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Layout */
+        .main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        /* Sections */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Chat Area */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        select, input[type="range"] {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        select:focus, textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        /* RAG Toggle */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: var(--bg-input);
+            border-radius: 14px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .toggle.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: var(--transition);
+        }
+
+        .toggle.active::after {
+            left: 26px;
+        }
+
+        .toggle-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Question Input */
+        .question-area {
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Suggestions */
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-top: 4px;
+            z-index: 10;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+
+        .suggestions.visible { display: block; }
+
+        .suggestion-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { border-color: var(--accent-primary); }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent-success), #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-danger), #dc2626);
+            color: white;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* Answer Area */
+        .answer-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            min-height: 200px;
+            padding: 1.5rem;
+        }
+
+        .answer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .answer-text {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .answer-text.empty {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 2rem;
+            justify-content: center;
+        }
+
+        .loading.visible { display: flex; }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Telemetry Cards */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .metric-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Source Cards */
+        .source-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .source-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            transition: var(--transition);
+        }
+
+        .source-card:hover {
+            border-color: var(--accent-info);
+        }
+
+        .source-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .source-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--accent-info);
+        }
+
+        .source-similarity {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .similarity-high { background: rgba(16, 185, 129, 0.2); color: var(--accent-success); }
+        .similarity-med { background: rgba(245, 158, 11, 0.2); color: var(--accent-warning); }
+        .similarity-low { background: rgba(239, 68, 68, 0.2); color: var(--accent-danger); }
+
+        .source-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .source-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .upload-formats {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Guardrail Status */
+        .guardrail-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .guardrail-pass { background: rgba(16, 185, 129, 0.15); color: var(--accent-success); }
+        .guardrail-fail { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+
+        /* No evidence state */
+        .no-evidence {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.ok { background: var(--accent-success); }
+        .status-dot.err { background: var(--accent-danger); }
+        .status-dot.warn { background: var(--accent-warning); }
+
+        /* Knowledge Base Section */
+        .kb-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .kb-stat {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .kb-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+
+        .kb-stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.5rem;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+
+        .toast.visible { display: flex; gap: 12px; align-items: center; }
+        .toast.success { border-color: var(--accent-success); }
+        .toast.error { border-color: var(--accent-danger); }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .nav { padding: 0 1rem; }
+            .nav-links { display: none; }
+            .main { padding: 1rem; }
+            .telemetry-grid { grid-template-columns: 1fr; }
+            .kb-stats { grid-template-columns: 1fr; }
+        }
+
+        /* Guardrail demo table */
+        .demo-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .demo-table th, .demo-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .demo-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .demo-table tr:hover td {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        /* Health detail cards */
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .health-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+        }
+
+        .health-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .health-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .health-card-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-brand">
+        <div class="logo">🤖</div>
+        <span>AI DevOps Assistant</span>
+    </div>
+    <div class="nav-links">
+        <a class="nav-link active" onclick="showSection('assistant')">🗨️ Assistant</a>
+        <a class="nav-link" onclick="showSection('knowledge')">📚 Knowledge Base</a>
+        <a class="nav-link" href="/evaluation">📊 Evaluation</a>
+        <a class="nav-link" onclick="showSection('guardrails')">🛡️ Guardrails</a>
+        <a class="nav-link" onclick="showSection('health')">💚 Health</a>
+    </div>
+    <div class="nav-health">
+        <div class="health-dot" id="healthDot"></div>
+        <span style="font-size:0.8rem;color:var(--text-secondary)" id="healthText">Checking...</span>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main">
+    <!-- Left: Chat Area -->
+    <div class="chat-container">
+        <!-- Assistant Section -->
+        <div class="section active" id="section-assistant">
+            <!-- Controls -->
+            <div class="controls-row" style="margin-bottom:1rem;">
+                <div class="control-group">
+                    <span class="control-label">Model</span>
+                    <select id="modelSelect">
+                        <option value="qwen2.5:3b">qwen2.5:3b</option>
+                        <option value="starcoder2:3b">starcoder2:3b</option>
+                        <option value="codellama:latest">codellama:latest</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">RAG</span>
+                    <div class="toggle-container">
+                        <div class="toggle active" id="ragToggle" onclick="toggleRAG()"></div>
+                        <span class="toggle-label" id="ragLabel">ON</span>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <span class="control-label">Top-K: <span id="topKValue">5</span></span>
+                    <input type="range" id="topKSlider" min="1" max="15" value="5" oninput="document.getElementById('topKValue').textContent=this.value">
+                </div>
+            </div>
+
+            <!-- Question -->
+            <div class="question-area">
+                <textarea id="questionInput" placeholder="Ask a DevOps question... (e.g., What is Docker Compose and how does it work?)" oninput="handleInput(this.value)"></textarea>
+                <div class="suggestions" id="suggestions"></div>
+            </div>
+
+            <div class="btn-row" style="margin-top:1rem;">
+                <button class="btn btn-primary" id="askBtn" onclick="askQuestion()">
+                    ⚡ Ask
+                </button>
+                <button class="btn btn-secondary" onclick="askComparison()">
+                    🔄 Compare RAG vs Non-RAG
+                </button>
+                <button class="btn btn-secondary" onclick="clearChat()">
+                    🗑️ Clear
+                </button>
+            </div>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span style="color:var(--text-secondary)">Generating response...</span>
+            </div>
+
+            <!-- Answer -->
+            <div class="answer-container" id="answerContainer" style="margin-top:1rem;">
+                <div class="answer-header">
+                    <span class="card-title">💬 Response</span>
+                    <div id="guardrailBadge"></div>
+                </div>
+                <div class="answer-text empty" id="answerText">
+                    Ask a question to get started. Try typing "docker", "prometheus", or "rag" for suggestions!
+                </div>
+            </div>
+
+            <!-- RAG vs Non-RAG Comparison -->
+            <div id="comparisonContainer" style="display:none; margin-top:1rem;">
+                <div class="card-title" style="margin-bottom:0.75rem;">🔄 RAG vs Non-RAG Comparison</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="card" style="border-color:var(--accent-success);">
+                        <div class="card-title" style="color:var(--accent-success);">✅ With RAG</div>
+                        <div class="answer-text" id="ragAnswer" style="font-size:0.85rem;"></div>
+                        <div class="metric-label" style="margin-top:0.5rem;" id="ragLatency"></div>
+                    </div>
+                    <div class="card" style="border-color:var(--accent-warning);">
+                        <div class="card-title" style="color:var(--accent-warning);">⚠️ Without RAG</div>
+                        <div class="answer-text" id="noRagAnswer" style="font-size:0.85rem;"></div>
+                        <div class="metric-label" style="margin-top:0.5rem;" id="noRagLatency"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Telemetry -->
+            <div class="telemetry-grid" id="telemetry" style="display:none;">
+                <div class="metric-card">
+                    <div class="metric-value" id="metricLatency">—</div>
+                    <div class="metric-label">Latency (s)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="metricTokens">—</div>
+                    <div class="metric-label">Total Tokens</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="metricTokSec">—</div>
+                    <div class="metric-label">Tokens/sec</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="metricSources">—</div>
+                    <div class="metric-label">Sources Found</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Knowledge Base Section -->
+        <div class="section" id="section-knowledge">
+            <h2 style="margin-bottom:1rem;">📚 Knowledge Base</h2>
+            <div class="btn-row" style="margin-bottom:1.5rem;">
+                <button class="btn btn-success" onclick="seedKnowledge()">🌱 Seed Built-in Knowledge</button>
+                <button class="btn btn-secondary" onclick="refreshKBStats()">🔄 Refresh Stats</button>
+            </div>
+            <div class="kb-stats" id="kbStats">
+                <div class="kb-stat">
+                    <div class="kb-stat-value" id="kbChunks">0</div>
+                    <div class="kb-stat-label">Total Chunks</div>
+                </div>
+                <div class="kb-stat">
+                    <div class="kb-stat-value" id="kbDocs">0</div>
+                    <div class="kb-stat-label">Documents</div>
+                </div>
+                <div class="kb-stat">
+                    <div class="kb-stat-value" id="kbSources">0</div>
+                    <div class="kb-stat-label">Sources</div>
+                </div>
+            </div>
+            <div class="card" style="margin-top:1.5rem;">
+                <div class="card-title">📄 Indexed Documents</div>
+                <div id="docList" style="font-size:0.85rem; color:var(--text-secondary);">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Guardrails Section -->
+        <div class="section" id="section-guardrails">
+            <h2 style="margin-bottom:1rem;">🛡️ Guardrails</h2>
+            <p style="color:var(--text-secondary); margin-bottom:1.5rem;">
+                Input and output guardrails protect the application from undesirable behavior.
+                Below is a demonstration of Without Guardrail → With Guardrail behavior.
+            </p>
+            <button class="btn btn-primary" onclick="runGuardrailDemo()" style="margin-bottom:1.5rem;">
+                🧪 Run Guardrail Demo
+            </button>
+            <div id="guardrailDemoResults"></div>
+            <div class="card" style="margin-top:1.5rem;">
+                <div class="card-title">📋 Active Guardrails</div>
+                <div id="guardrailList" style="font-size:0.85rem;">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Health Section -->
+        <div class="section" id="section-health">
+            <h2 style="margin-bottom:1rem;">💚 Service Health</h2>
+            <button class="btn btn-secondary" onclick="checkHealth()" style="margin-bottom:1rem;">🔄 Refresh</button>
+            <div class="health-grid" id="healthGrid">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Right: Sidebar -->
+    <div class="sidebar">
+        <!-- Upload Card -->
+        <div class="card">
+            <div class="card-title">📤 Upload Document</div>
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📎</div>
+                <div class="upload-text">Click or drag & drop</div>
+                <div class="upload-formats">PDF, TXT, MD</div>
+            </div>
+            <input type="file" id="fileInput" accept=".pdf,.txt,.md" style="display:none" onchange="uploadFile(this.files[0])">
+            <div id="uploadStatus" style="margin-top:0.75rem; font-size:0.85rem;"></div>
+        </div>
+
+        <!-- Sources Card -->
+        <div class="card">
+            <div class="card-title">📄 Retrieved Sources</div>
+            <div class="source-list" id="sourceList">
+                <div class="no-evidence">Ask a question with RAG enabled to see source evidence</div>
+            </div>
+        </div>
+
+        <!-- Service Status -->
+        <div class="card">
+            <div class="card-title">⚡ Services</div>
+            <div class="status-bar" id="serviceStatus">
+                <div class="status-item"><div class="status-dot warn"></div>Checking...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <span id="toastIcon">✅</span>
+    <span id="toastMessage"></span>
+</div>
+
+<script>
+    // State
+    let ragEnabled = true;
+    let currentSuggestionTimeout = null;
+
+    // Navigation
+    function showSection(name) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.getElementById('section-' + name).classList.add('active');
+        event.target.classList.add('active');
+
+        if (name === 'knowledge') refreshKBStats();
+        if (name === 'guardrails') loadGuardrails();
+        if (name === 'health') checkHealth();
+    }
+
+    // RAG Toggle
+    function toggleRAG() {
+        ragEnabled = !ragEnabled;
+        const toggle = document.getElementById('ragToggle');
+        const label = document.getElementById('ragLabel');
+        toggle.classList.toggle('active', ragEnabled);
+        label.textContent = ragEnabled ? 'ON' : 'OFF';
+    }
+
+    // Prompt Suggestions
+    function handleInput(value) {
+        if (currentSuggestionTimeout) clearTimeout(currentSuggestionTimeout);
+        currentSuggestionTimeout = setTimeout(() => fetchSuggestions(value), 300);
+    }
+
+    async function fetchSuggestions(query) {
+        if (!query || query.length < 2) {
+            document.getElementById('suggestions').classList.remove('visible');
+            return;
+        }
+        try {
+            const resp = await fetch(`/suggestions?q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            const container = document.getElementById('suggestions');
+            if (data.suggestions && data.suggestions.length > 0) {
+                container.innerHTML = data.suggestions.map(s =>
+                    `<div class="suggestion-item" onclick="useSuggestion('${s.replace(/'/g, "\\'")}')">${s}</div>`
+                ).join('');
+                container.classList.add('visible');
+            } else {
+                container.classList.remove('visible');
+            }
+        } catch (e) {
+            document.getElementById('suggestions').classList.remove('visible');
+        }
+    }
+
+    function useSuggestion(text) {
+        document.getElementById('questionInput').value = text;
+        document.getElementById('suggestions').classList.remove('visible');
+    }
+
+    // Close suggestions on outside click
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.question-area')) {
+            document.getElementById('suggestions').classList.remove('visible');
+        }
+    });
+
+    // Ask Question
+    async function askQuestion() {
+        const question = document.getElementById('questionInput').value.trim();
+        if (!question) { showToast('Please enter a question', 'error'); return; }
+
+        const model = document.getElementById('modelSelect').value;
+        const topK = parseInt(document.getElementById('topKSlider').value);
+
+        document.getElementById('askBtn').disabled = true;
+        document.getElementById('loading').classList.add('visible');
+        document.getElementById('answerText').classList.add('empty');
+        document.getElementById('answerText').textContent = '';
+        document.getElementById('comparisonContainer').style.display = 'none';
+
+        try {
+            const resp = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, model, rag_enabled: ragEnabled, top_k: topK })
+            });
+            const data = await resp.json();
+            displayResult(data);
+        } catch (e) {
+            document.getElementById('answerText').textContent = 'Error: ' + e.message;
+        } finally {
+            document.getElementById('askBtn').disabled = false;
+            document.getElementById('loading').classList.remove('visible');
+        }
+    }
+
+    // Compare RAG vs Non-RAG
+    async function askComparison() {
+        const question = document.getElementById('questionInput').value.trim();
+        if (!question) { showToast('Please enter a question', 'error'); return; }
+
+        const model = document.getElementById('modelSelect').value;
+        const topK = parseInt(document.getElementById('topKSlider').value);
+
+        document.getElementById('askBtn').disabled = true;
+        document.getElementById('loading').classList.add('visible');
+
+        try {
+            const [ragResp, noRagResp] = await Promise.all([
+                fetch('/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, model, rag_enabled: true, top_k: topK }) }),
+                fetch('/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question, model, rag_enabled: false, top_k: topK }) })
+            ]);
+
+            const ragData = await ragResp.json();
+            const noRagData = await noRagResp.json();
+
+            // Show comparison
+            document.getElementById('comparisonContainer').style.display = 'block';
+            document.getElementById('ragAnswer').textContent = ragData.answer || 'No response';
+            document.getElementById('noRagAnswer').textContent = noRagData.answer || 'No response';
+            document.getElementById('ragLatency').textContent =
+                `⏱️ ${ragData.telemetry?.latency_seconds?.toFixed(2) || '?'}s | 📝 ${ragData.telemetry?.total_tokens || '?'} tokens | 📄 ${ragData.sources?.length || 0} sources`;
+            document.getElementById('noRagLatency').textContent =
+                `⏱️ ${noRagData.telemetry?.latency_seconds?.toFixed(2) || '?'}s | 📝 ${noRagData.telemetry?.total_tokens || '?'} tokens`;
+
+            // Also display RAG result in main area
+            displayResult(ragData);
+        } catch (e) {
+            showToast('Comparison failed: ' + e.message, 'error');
+        } finally {
+            document.getElementById('askBtn').disabled = false;
+            document.getElementById('loading').classList.remove('visible');
+        }
+    }
+
+    function displayResult(data) {
+        // Answer
+        const answerEl = document.getElementById('answerText');
+        answerEl.textContent = data.answer || 'No response received';
+        answerEl.classList.toggle('empty', !data.answer);
+
+        // Guardrail badge
+        const badgeEl = document.getElementById('guardrailBadge');
+        const inputGuard = data.guardrail?.input;
+        if (inputGuard) {
+            if (inputGuard.passed) {
+                badgeEl.innerHTML = '<span class="guardrail-badge guardrail-pass">✅ Guardrails Passed</span>';
+            } else {
+                badgeEl.innerHTML = `<span class="guardrail-badge guardrail-fail">🚫 Blocked: ${inputGuard.rule}</span>`;
+            }
+        }
+
+        // Telemetry
+        if (data.telemetry && data.status !== 'blocked_by_guardrail') {
+            document.getElementById('telemetry').style.display = 'grid';
+            document.getElementById('metricLatency').textContent = (data.telemetry.latency_seconds || 0).toFixed(2);
+            document.getElementById('metricTokens').textContent = data.telemetry.total_tokens || 0;
+            document.getElementById('metricTokSec').textContent = (data.telemetry.generation_tok_per_sec || 0).toFixed(1);
+            document.getElementById('metricSources').textContent = data.sources?.length || 0;
+        } else {
+            document.getElementById('telemetry').style.display = 'none';
+        }
+
+        // Sources
+        const sourceList = document.getElementById('sourceList');
+        if (data.sources && data.sources.length > 0) {
+            sourceList.innerHTML = data.sources.map(s => {
+                const simClass = s.similarity >= 0.6 ? 'similarity-high' : s.similarity >= 0.35 ? 'similarity-med' : 'similarity-low';
+                return `
+                <div class="source-card">
+                    <div class="source-header">
+                        <span class="source-name">📄 ${s.document || 'Unknown'}</span>
+                        <span class="source-similarity ${simClass}">${(s.similarity * 100).toFixed(0)}%</span>
+                    </div>
+                    <div class="source-text">${s.text_preview || ''}</div>
+                    <div class="source-meta">Page: ${s.page || '—'} | Chunk: ${s.chunk_index || '—'}</div>
+                </div>`;
+            }).join('');
+        } else {
+            sourceList.innerHTML = '<div class="no-evidence">No supporting evidence found</div>';
+        }
+    }
+
+    function clearChat() {
+        document.getElementById('questionInput').value = '';
+        document.getElementById('answerText').textContent = 'Ask a question to get started.';
+        document.getElementById('answerText').classList.add('empty');
+        document.getElementById('telemetry').style.display = 'none';
+        document.getElementById('comparisonContainer').style.display = 'none';
+        document.getElementById('sourceList').innerHTML = '<div class="no-evidence">Ask a question with RAG enabled to see source evidence</div>';
+        document.getElementById('guardrailBadge').innerHTML = '';
+    }
+
+    // Upload
+    async function uploadFile(file) {
+        if (!file) return;
+        const statusEl = document.getElementById('uploadStatus');
+        statusEl.innerHTML = '<span style="color:var(--accent-info)">⏳ Uploading & indexing...</span>';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const resp = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await resp.json();
+
+            if (resp.ok) {
+                statusEl.innerHTML = `<span style="color:var(--accent-success)">✅ ${data.chunks_created || 0} chunks indexed from ${file.name}</span>`;
+                showToast(`Uploaded ${file.name}: ${data.chunks_created} chunks`, 'success');
+            } else {
+                statusEl.innerHTML = `<span style="color:var(--accent-danger)">❌ ${data.detail || 'Upload failed'}</span>`;
+            }
+        } catch (e) {
+            statusEl.innerHTML = `<span style="color:var(--accent-danger)">❌ ${e.message}</span>`;
+        }
+    }
+
+    // Drag & drop
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        if (e.dataTransfer.files.length) uploadFile(e.dataTransfer.files[0]);
+    });
+
+    // Knowledge Base
+    async function seedKnowledge() {
+        showToast('Seeding knowledge base...', 'success');
+        try {
+            const resp = await fetch('/seed', { method: 'POST' });
+            const data = await resp.json();
+            showToast(`Seeded ${data.files_processed} files`, 'success');
+            refreshKBStats();
+        } catch (e) {
+            showToast('Seeding failed: ' + e.message, 'error');
+        }
+    }
+
+    async function refreshKBStats() {
+        try {
+            const resp = await fetch('/documents');
+            const data = await resp.json();
+            document.getElementById('kbChunks').textContent = data.total_chunks || 0;
+            document.getElementById('kbDocs').textContent = data.total_documents || 0;
+            document.getElementById('kbSources').textContent = data.documents?.length || 0;
+
+            if (data.documents && data.documents.length > 0) {
+                document.getElementById('docList').innerHTML = data.documents.map(d =>
+                    `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+                        <strong>${d.source}</strong> — ${d.chunk_count} chunks
+                    </div>`
+                ).join('');
+            } else {
+                document.getElementById('docList').innerHTML = '<em>No documents indexed yet. Click "Seed Built-in Knowledge" to start.</em>';
+            }
+        } catch (e) {
+            document.getElementById('docList').textContent = 'Error loading documents';
+        }
+    }
+
+    // Guardrails
+    async function loadGuardrails() {
+        try {
+            const resp = await fetch('/guardrails');
+            const data = await resp.json();
+            const el = document.getElementById('guardrailList');
+            let html = '<h4 style="margin:0.75rem 0 0.5rem;color:var(--accent-success);">Input Guardrails</h4>';
+            (data.input_guardrails || []).forEach(g => {
+                html += `<div style="padding:6px 0;"><strong>${g.rule}</strong>: ${g.description}</div>`;
+            });
+            html += '<h4 style="margin:0.75rem 0 0.5rem;color:var(--accent-warning);">Output Guardrails</h4>';
+            (data.output_guardrails || []).forEach(g => {
+                html += `<div style="padding:6px 0;"><strong>${g.rule}</strong>: ${g.description}</div>`;
+            });
+            html += `<div style="margin-top:0.75rem;color:var(--text-muted);">Total Guards: ${data.total_guards || 0}</div>`;
+            el.innerHTML = html;
+        } catch (e) {
+            document.getElementById('guardrailList').textContent = 'Error loading guardrails';
+        }
+    }
+
+    async function runGuardrailDemo() {
+        try {
+            const resp = await fetch('/guardrails/demo', { method: 'POST' });
+            const data = await resp.json();
+            const el = document.getElementById('guardrailDemoResults');
+
+            let html = `<table class="demo-table">
+                <tr><th>Test</th><th>Without Guardrail</th><th>With Guardrail</th><th>Status</th></tr>`;
+            (data.results || []).forEach(r => {
+                html += `<tr>
+                    <td><strong>${r.test}</strong><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.description}</span></td>
+                    <td style="color:var(--accent-danger)">${r.without_guardrail.risk}</td>
+                    <td style="color:var(--accent-success)">${r.with_guardrail.message.substring(0, 80)}...</td>
+                    <td>${r.with_guardrail.blocked ? '<span class="guardrail-badge guardrail-fail">🚫 Blocked</span>' : '<span class="guardrail-badge guardrail-pass">✅ Allowed</span>'}</td>
+                </tr>`;
+            });
+            html += `</table>`;
+            el.innerHTML = html;
+        } catch (e) {
+            showToast('Demo failed: ' + e.message, 'error');
+        }
+    }
+
+    // Health
+    async function checkHealth() {
+        try {
+            const resp = await fetch('/health');
+            const data = await resp.json();
+
+            // Update header
+            const dot = document.getElementById('healthDot');
+            const text = document.getElementById('healthText');
+            dot.className = 'health-dot ' + (data.status === 'healthy' ? '' : 'error');
+            text.textContent = data.status === 'healthy' ? 'All Systems Go' : 'Degraded';
+
+            // Service status sidebar
+            const services = data.services || {};
+            document.getElementById('serviceStatus').innerHTML = Object.entries(services).map(([name, s]) =>
+                `<div class="status-item"><div class="status-dot ${s.status === 'healthy' ? 'ok' : s.status === 'not_configured' ? 'warn' : 'err'}"></div>${name}</div>`
+            ).join('');
+
+            // Health grid
+            const grid = document.getElementById('healthGrid');
+            grid.innerHTML = Object.entries(services).map(([name, s]) => `
+                <div class="health-card">
+                    <div class="health-card-header">
+                        <span class="health-card-title">${name}</span>
+                        <span class="guardrail-badge ${s.status === 'healthy' ? 'guardrail-pass' : 'guardrail-fail'}">${s.status || 'unknown'}</span>
+                    </div>
+                    <div class="health-card-detail">${Object.entries(s).filter(([k]) => k !== 'status').map(([k,v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join('<br>')}</div>
+                </div>
+            `).join('');
+        } catch (e) {
+            document.getElementById('healthDot').className = 'health-dot error';
+            document.getElementById('healthText').textContent = 'Offline';
+        }
+    }
+
+    // Load models
+    async function loadModels() {
+        try {
+            const resp = await fetch('/models');
+            const data = await resp.json();
+            const select = document.getElementById('modelSelect');
+            if (data.models && data.models.length > 0) {
+                select.innerHTML = data.models.map(m =>
+                    `<option value="${m.name}" ${m.name === data.default ? 'selected' : ''}>${m.name}</option>`
+                ).join('');
+            }
+        } catch (e) { /* keep defaults */ }
+    }
+
+    // Toast
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '❌';
+        document.getElementById('toastMessage').textContent = msg;
+        toast.className = `toast visible ${type}`;
+        setTimeout(() => toast.classList.remove('visible'), 3000);
+    }
+
+    // Init
+    window.addEventListener('load', () => {
+        loadModels();
+        checkHealth();
+        setInterval(checkHealth, 30000);
+    });
+
+    // Enter key to submit
+    document.getElementById('questionInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQuestion(); }
+    });
+</script>
+</body>
+</html>

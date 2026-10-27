@@ -1,0 +1,296 @@
+{
+  "Explanation": {
+    "qwen2.5:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.4988,
+      "avg_relevance": 0.5933,
+      "avg_hallucination_rate": 0.0667,
+      "avg_latency": 20.2484,
+      "p95_latency": 26.6413,
+      "avg_tokens": 838,
+      "avg_retrieval_similarity": 0.771
+    },
+    "starcoder2:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.2959,
+      "avg_relevance": 0.5167,
+      "avg_hallucination_rate": 0.2313,
+      "avg_latency": 25.6573,
+      "p95_latency": 41.0751,
+      "avg_tokens": 1077,
+      "avg_retrieval_similarity": 0.771
+    },
+    "codellama:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.3555,
+      "avg_relevance": 0.5017,
+      "avg_hallucination_rate": 0.299,
+      "avg_latency": 42.4896,
+      "p95_latency": 64.4706,
+      "avg_tokens": 887,
+      "avg_retrieval_similarity": 0.771
+    },
+    "mistral:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.4715,
+      "avg_relevance": 0.5183,
+      "avg_hallucination_rate": 0.0667,
+      "avg_latency": 39.4901,
+      "p95_latency": 58.0482,
+      "avg_tokens": 923,
+      "avg_retrieval_similarity": 0.771
+    }
+  },
+  "Code Retrieval": {
+    "qwen2.5:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.2724,
+      "avg_relevance": 0.6226,
+      "avg_hallucination_rate": 0.24,
+      "avg_latency": 14.5698,
+      "p95_latency": 16.9483,
+      "avg_tokens": 805,
+      "avg_retrieval_similarity": 0.6634
+    },
+    "starcoder2:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.1988,
+      "avg_relevance": 0.3286,
+      "avg_hallucination_rate": 0.1333,
+      "avg_latency": 17.0991,
+      "p95_latency": 47.2193,
+      "avg_tokens": 935,
+      "avg_retrieval_similarity": 0.6634
+    },
+    "codellama:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.3736,
+      "avg_relevance": 0.7874,
+      "avg_hallucination_rate": 0.04,
+      "avg_latency": 41.1897,
+      "p95_latency": 107.5819,
+      "avg_tokens": 899,
+      "avg_retrieval_similarity": 0.6634
+    },
+    "mistral:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.2959,
+      "avg_relevance": 0.6776,
+      "avg_hallucination_rate": 0.25,
+      "avg_latency": 133.6431,
+      "p95_latency": 564.2503,
+      "avg_tokens": 870,
+      "avg_retrieval_similarity": 0.6634
+    }
+  },
+  "Dependency Understanding": {
+    "qwen2.5:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.2666,
+      "avg_relevance": 0.6159,
+      "avg_hallucination_rate": 0.1143,
+      "avg_latency": 11.9556,
+      "p95_latency": 17.0514,
+      "avg_tokens": 783,
+      "avg_retrieval_similarity": 0.6514
+    },
+    "starcoder2:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.1507,
+      "avg_relevance": 0.3619,
+      "avg_hallucination_rate": 0.2997,
+      "avg_latency": 23.55,
+      "p95_latency": 49.5037,
+      "avg_tokens": 1035,
+      "avg_retrieval_similarity": 0.6514
+    },
+    "codellama:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.2707,
+      "avg_relevance": 0.6159,
+      "avg_hallucination_rate": 0.0286,
+      "avg_latency": 44.8789,
+      "p95_latency": 100.1869,
+      "avg_tokens": 1010,
+      "avg_retrieval_similarity": 0.6514
+    },
+    "mistral:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.2448,
+      "avg_relevance": 0.5151,
+      "avg_hallucination_rate": 0.29,
+      "avg_latency": 108.7568,
+      "p95_latency": 372.256,
+      "avg_tokens": 912,
+      "avg_retrieval_similarity": 0.6514
+    }
+  },
+  "Bug Analysis": {
+    "qwen2.5:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.1107,
+      "avg_relevance": 0.2737,
+      "avg_hallucination_rate": 0.2593,
+      "avg_latency": 17.3291,
+      "p95_latency": 31.4446,
+      "avg_tokens": 889,
+      "avg_retrieval_similarity": 0.6314
+    },
+    "starcoder2:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.079,
+      "avg_relevance": 0.47,
+      "avg_hallucination_rate": 0.2667,
+      "avg_latency": 15.0259,
+      "p95_latency": 39.4628,
+      "avg_tokens": 940,
+      "avg_retrieval_similarity": 0.6314
+    },
+    "codellama:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.1563,
+      "avg_relevance": 0.588,
+      "avg_hallucination_rate": 0.1893,
+      "avg_latency": 59.752,
+      "p95_latency": 67.412,
+      "avg_tokens": 1154,
+      "avg_retrieval_similarity": 0.6314
+    },
+    "mistral:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.1741,
+      "avg_relevance": 0.4522,
+      "avg_hallucination_rate": 0.1123,
+      "avg_latency": 46.714,
+      "p95_latency": 76.7067,
+      "avg_tokens": 1011,
+      "avg_retrieval_similarity": 0.6314
+    }
+  },
+  "Code Generation": {
+    "qwen2.5:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.1715,
+      "avg_relevance": 0.1836,
+      "avg_hallucination_rate": 0.5,
+      "avg_latency": 11.8967,
+      "p95_latency": 21.9633,
+      "avg_tokens": 802,
+      "avg_retrieval_similarity": 0.6108
+    },
+    "starcoder2:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.0962,
+      "avg_relevance": 0.8,
+      "avg_hallucination_rate": 0.28,
+      "avg_latency": 19.0076,
+      "p95_latency": 48.1639,
+      "avg_tokens": 967,
+      "avg_retrieval_similarity": 0.6108
+    },
+    "codellama:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.1843,
+      "avg_relevance": 0.7562,
+      "avg_hallucination_rate": 0.2699,
+      "avg_latency": 71.0171,
+      "p95_latency": 84.7348,
+      "avg_tokens": 1145,
+      "avg_retrieval_similarity": 0.6108
+    },
+    "mistral:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.1831,
+      "avg_relevance": 0.8511,
+      "avg_hallucination_rate": 0.2455,
+      "avg_latency": 66.1869,
+      "p95_latency": 98.9119,
+      "avg_tokens": 1045,
+      "avg_retrieval_similarity": 0.6108
+    }
+  },
+  "Refactoring": {
+    "qwen2.5:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.1558,
+      "avg_relevance": 0.2011,
+      "avg_hallucination_rate": 0.3,
+      "avg_latency": 9.8301,
+      "p95_latency": 16.7976,
+      "avg_tokens": 716,
+      "avg_retrieval_similarity": 0.6334
+    },
+    "starcoder2:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.1457,
+      "avg_relevance": 0.4516,
+      "avg_hallucination_rate": 0.3697,
+      "avg_latency": 18.8622,
+      "p95_latency": 36.2834,
+      "avg_tokens": 917,
+      "avg_retrieval_similarity": 0.6334
+    },
+    "codellama:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.13,
+      "avg_relevance": 0.5385,
+      "avg_hallucination_rate": 0.4514,
+      "avg_latency": 59.4294,
+      "p95_latency": 78.6697,
+      "avg_tokens": 1007,
+      "avg_retrieval_similarity": 0.6334
+    },
+    "mistral:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.2089,
+      "avg_relevance": 0.5138,
+      "avg_hallucination_rate": 0.28,
+      "avg_latency": 50.1547,
+      "p95_latency": 81.5454,
+      "avg_tokens": 918,
+      "avg_retrieval_similarity": 0.6334
+    }
+  },
+  "RAG based Question": {
+    "qwen2.5:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.3091,
+      "avg_relevance": 0.6583,
+      "avg_hallucination_rate": 0.1556,
+      "avg_latency": 19.7474,
+      "p95_latency": 29.094,
+      "avg_tokens": 879,
+      "avg_retrieval_similarity": 0.6846
+    },
+    "starcoder2:3b": {
+      "evaluations": 5,
+      "avg_correctness": 0.1727,
+      "avg_relevance": 0.4333,
+      "avg_hallucination_rate": 0.2532,
+      "avg_latency": 24.284,
+      "p95_latency": 45.8568,
+      "avg_tokens": 1021,
+      "avg_retrieval_similarity": 0.6846
+    },
+    "codellama:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.2147,
+      "avg_relevance": 0.65,
+      "avg_hallucination_rate": 0.1067,
+      "avg_latency": 51.4299,
+      "p95_latency": 71.6214,
+      "avg_tokens": 1035,
+      "avg_retrieval_similarity": 0.6846
+    },
+    "mistral:latest": {
+      "evaluations": 5,
+      "avg_correctness": 0.2571,
+      "avg_relevance": 0.6611,
+      "avg_hallucination_rate": 0.2807,
+      "avg_latency": 42.3017,
+      "p95_latency": 46.6507,
+      "avg_tokens": 940,
+      "avg_retrieval_similarity": 0.6846
+    }
+  }
+}

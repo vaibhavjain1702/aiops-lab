@@ -1,0 +1,33 @@
+version: '3.8'
+
+# Extended compose for live evaluation and code runner (Week 4/5)
+# Usage: docker compose -f docker-compose.yml -f docker-compose.live.yml up -d --build
+
+services:
+  app:
+    environment:
+      - CODE_RUNNER_URL=http://code-runner:8004
+    networks:
+      - aiops-network
+      - live_eval
+
+  code-runner:
+    build:
+      context: .
+      dockerfile: code-runner.Dockerfile
+    container_name: aiops-code-runner
+    expose:
+      - "8004"
+    networks:
+      - live_eval
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=32m
+    mem_limit: 256m
+    cpus: "0.50"
+    pids_limit: 64
+    restart: unless-stopped
+
+networks:
+  live_eval:
+    internal: true

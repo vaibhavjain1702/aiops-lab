@@ -1,0 +1,29 @@
+Category,Model,Evaluations,Avg_Correctness,Avg_Relevance,Avg_Hallucination,Avg_Latency,P95_Latency,Avg_Tokens,Avg_Retrieval_Similarity
+Explanation,qwen2.5:3b,5,0.4988,0.5933,0.0667,20.2484,26.6413,838,0.771
+Explanation,starcoder2:3b,5,0.2959,0.5167,0.2313,25.6573,41.0751,1077,0.771
+Explanation,codellama:latest,5,0.3555,0.5017,0.299,42.4896,64.4706,887,0.771
+Explanation,mistral:latest,5,0.4715,0.5183,0.0667,39.4901,58.0482,923,0.771
+Code Retrieval,qwen2.5:3b,5,0.2724,0.6226,0.24,14.5698,16.9483,805,0.6634
+Code Retrieval,starcoder2:3b,5,0.1988,0.3286,0.1333,17.0991,47.2193,935,0.6634
+Code Retrieval,codellama:latest,5,0.3736,0.7874,0.04,41.1897,107.5819,899,0.6634
+Code Retrieval,mistral:latest,5,0.2959,0.6776,0.25,133.6431,564.2503,870,0.6634
+Dependency Understanding,qwen2.5:3b,5,0.2666,0.6159,0.1143,11.9556,17.0514,783,0.6514
+Dependency Understanding,starcoder2:3b,5,0.1507,0.3619,0.2997,23.55,49.5037,1035,0.6514
+Dependency Understanding,codellama:latest,5,0.2707,0.6159,0.0286,44.8789,100.1869,1010,0.6514
+Dependency Understanding,mistral:latest,5,0.2448,0.5151,0.29,108.7568,372.256,912,0.6514
+Bug Analysis,qwen2.5:3b,5,0.1107,0.2737,0.2593,17.3291,31.4446,889,0.6314
+Bug Analysis,starcoder2:3b,5,0.079,0.47,0.2667,15.0259,39.4628,940,0.6314
+Bug Analysis,codellama:latest,5,0.1563,0.588,0.1893,59.752,67.412,1154,0.6314
+Bug Analysis,mistral:latest,5,0.1741,0.4522,0.1123,46.714,76.7067,1011,0.6314
+Code Generation,qwen2.5:3b,5,0.1715,0.1836,0.5,11.8967,21.9633,802,0.6108
+Code Generation,starcoder2:3b,5,0.0962,0.8,0.28,19.0076,48.1639,967,0.6108
+Code Generation,codellama:latest,5,0.1843,0.7562,0.2699,71.0171,84.7348,1145,0.6108
+Code Generation,mistral:latest,5,0.1831,0.8511,0.2455,66.1869,98.9119,1045,0.6108
+Refactoring,qwen2.5:3b,5,0.1558,0.2011,0.3,9.8301,16.7976,716,0.6334
+Refactoring,starcoder2:3b,5,0.1457,0.4516,0.3697,18.8622,36.2834,917,0.6334
+Refactoring,codellama:latest,5,0.13,0.5385,0.4514,59.4294,78.6697,1007,0.6334
+Refactoring,mistral:latest,5,0.2089,0.5138,0.28,50.1547,81.5454,918,0.6334
+RAG based Question,qwen2.5:3b,5,0.3091,0.6583,0.1556,19.7474,29.094,879,0.6846
+RAG based Question,starcoder2:3b,5,0.1727,0.4333,0.2532,24.284,45.8568,1021,0.6846
+RAG based Question,codellama:latest,5,0.2147,0.65,0.1067,51.4299,71.6214,1035,0.6846
+RAG based Question,mistral:latest,5,0.2571,0.6611,0.2807,42.3017,46.6507,940,0.6846

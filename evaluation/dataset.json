@@ -1,0 +1,272 @@
+{
+  "metadata": {
+    "description": "AI DevOps Assistant Evaluation Dataset — 7 categories, 5 questions each, 35 total",
+    "purpose": "Category-wise quantitative comparison of models (qwen2.5:3b, starcoder2:3b, codellama)",
+    "note": "Same questions must be used for ALL models so comparison is meaningful",
+    "categories": ["Explanation", "Code Retrieval", "Dependency Understanding", "Bug Analysis", "Code Generation", "Refactoring", "RAG based Question"],
+    "models": ["qwen2.5:3b", "starcoder2:3b", "codellama:latest"],
+    "total_questions": 35,
+    "total_evaluations": 105
+  },
+  "questions": [
+    {
+      "id": 1,
+      "category": "Explanation",
+      "question": "What is Docker and how does containerization differ from virtualization?",
+      "reference_answer": "Docker is a containerization platform that packages applications with their dependencies into lightweight, portable containers. Unlike virtualization which runs full operating systems on a hypervisor, containers share the host OS kernel, making them faster to start, more resource-efficient, and smaller in size. Containers provide process-level isolation rather than hardware-level isolation.",
+      "code_tests": null
+    },
+    {
+      "id": 2,
+      "category": "Explanation",
+      "question": "Explain how Prometheus collects and stores metrics. What are the four metric types?",
+      "reference_answer": "Prometheus collects metrics via a pull model by scraping HTTP endpoints at configured intervals. It stores metrics as time series data with labels. The four metric types are: Counter (monotonically increasing cumulative value), Gauge (value that can go up and down), Histogram (observations in configurable buckets), and Summary (total count and sum of observations with configurable quantiles).",
+      "code_tests": null
+    },
+    {
+      "id": 3,
+      "category": "Explanation",
+      "question": "What is RAG (Retrieval-Augmented Generation) and how does it improve LLM responses?",
+      "reference_answer": "RAG enhances LLM responses by retrieving relevant information from an external knowledge base before generation. The workflow is: question → embedding → vector similarity search → retrieve relevant chunks → provide as context to LLM → grounded answer. RAG reduces hallucination, provides up-to-date domain-specific answers, enables source attribution, and does not require model fine-tuning.",
+      "code_tests": null
+    },
+    {
+      "id": 4,
+      "category": "Explanation",
+      "question": "What is cosine similarity and how is it used in vector similarity search?",
+      "reference_answer": "Cosine similarity measures the cosine of the angle between two vectors, ranging from -1 to 1. In vector similarity search, documents and queries are converted to embedding vectors, and cosine similarity identifies the most relevant documents. Higher similarity means more relevant content. ChromaDB uses cosine distance (1 - similarity). A typical relevance threshold is 0.25.",
+      "code_tests": null
+    },
+    {
+      "id": 5,
+      "category": "Explanation",
+      "question": "Explain the difference between Docker images and Docker containers, including their lifecycle.",
+      "reference_answer": "A Docker image is a read-only template built from a Dockerfile containing application code, runtime, libraries, and settings. A container is a running instance of an image that provides an isolated execution environment. Images are built with docker build, containers are created with docker run. Multiple containers can run from the same image. Containers can be started, stopped, and removed while the image remains unchanged.",
+      "code_tests": null
+    },
+    {
+      "id": 6,
+      "category": "Code Retrieval",
+      "question": "Which file handles the LLM generation logic and communication with Ollama?",
+      "reference_answer": "The services/llm_service.py file handles LLM generation. It contains the GenerateRequest model, grounded and direct prompt templates, the /generate endpoint that communicates with Ollama's /api/generate endpoint, and returns answer with latency, token counts, and Ollama duration metrics.",
+      "code_tests": null
+    },
+    {
+      "id": 7,
+      "category": "Code Retrieval",
+      "question": "Which file and endpoint handles document uploads and ingestion into the knowledge base?",
+      "reference_answer": "Document uploads are handled by the /upload endpoint in app.py, which saves the file and forwards it to the ingestion service. The services/ingestion_service.py handles the actual processing with its /ingest endpoint, performing text extraction (PDF/TXT/MD), normalization, chunking, and indexing via the retrieval service.",
+      "code_tests": null
+    },
+    {
+      "id": 8,
+      "category": "Code Retrieval",
+      "question": "Where is the ChromaDB collection configured and what similarity metric does it use?",
+      "reference_answer": "The ChromaDB collection is configured in services/retrieval_service.py. The collection is named 'devops_knowledge' and uses cosine similarity space, configured via metadata={'hnsw:space': 'cosine'} in the get_or_create_collection call. It uses a PersistentClient with the path from CHROMA_PERSIST_DIR environment variable.",
+      "code_tests": null
+    },
+    {
+      "id": 9,
+      "category": "Code Retrieval",
+      "question": "Which file implements the guardrails and what patterns does it check for prompt injection?",
+      "reference_answer": "The services/guardrails.py file implements guardrails. For prompt injection, it checks patterns including: ignore-previous-instructions, system-prompt disclosure, jailbreak attempts, DAN mode, developer mode, bypass safety/restrictions, pretend no rules, and override safety policy. It uses regex pattern matching against a list of INJECTION_PATTERNS.",
+      "code_tests": null
+    },
+    {
+      "id": 10,
+      "category": "Code Retrieval",
+      "question": "Where is the perform_ask function defined and what are its main steps?",
+      "reference_answer": "The perform_ask function is defined in app.py. Its main steps are: 1) Input guardrail validation, 2) Retrieval from ChromaDB via retrieval service (if RAG enabled), 3) Context assembly from retrieved chunks, 4) LLM generation via LLM service with grounded or direct prompt, 5) Output guardrail validation, 6) Return response with answer, sources, telemetry, and guardrail status.",
+      "code_tests": null
+    },
+    {
+      "id": 11,
+      "category": "Dependency Understanding",
+      "question": "What happens when a user uploads a PDF document? Trace the flow through all services.",
+      "reference_answer": "Upload flow: 1) User sends file to app.py /upload endpoint, 2) App saves file to uploads/ and forwards to ingestion service /ingest, 3) Ingestion extracts text from PDF using PyPDF2, normalizes text, chunks it (500 chars, 50 overlap), 4) Ingestion sends chunks to retrieval service /upsert_batch, 5) Retrieval generates embeddings via Ollama nomic-embed-text, 6) Retrieval stores embeddings + metadata in ChromaDB devops_knowledge collection.",
+      "code_tests": null
+    },
+    {
+      "id": 12,
+      "category": "Dependency Understanding",
+      "question": "How do the Docker services communicate with each other? What network do they share?",
+      "reference_answer": "Services communicate using Docker service names on the aiops-network bridge network defined in docker-compose.yml. App reaches retrieval at http://retrieval:8001, LLM at http://llm:8002, and ingestion at http://ingestion:8003. Ingestion reaches retrieval at http://retrieval:8001. LLM and retrieval reach Ollama at the host via http://host.docker.internal:11434. The code runner uses a separate internal live_eval network.",
+      "code_tests": null
+    },
+    {
+      "id": 13,
+      "category": "Dependency Understanding",
+      "question": "If the retrieval service goes down, what parts of the application are affected?",
+      "reference_answer": "If retrieval goes down: 1) RAG-enabled questions fail (no context retrieval), 2) Document uploads fail (ingestion can't index via retrieval), 3) Knowledge base seeding fails, 4) /documents endpoint fails, 5) /stats endpoint fails, 6) Health check shows retrieval as unreachable. Non-RAG questions still work since they only need the LLM service. The app status becomes 'degraded'.",
+      "code_tests": null
+    },
+    {
+      "id": 14,
+      "category": "Dependency Understanding",
+      "question": "What is the relationship between the embedding model and the generation models? Why must they be separate?",
+      "reference_answer": "The embedding model (nomic-embed-text) converts text to vector representations for similarity search in ChromaDB. Generation models (qwen2.5:3b, starcoder2:3b, codellama) produce text responses. They serve fundamentally different roles: embeddings create numerical vectors for retrieval, while generation models produce language. The same embedding model must be used for indexing and querying. Generation models are filtered from the model dropdown to prevent confusion.",
+      "code_tests": null
+    },
+    {
+      "id": 15,
+      "category": "Dependency Understanding",
+      "question": "How does the guardrail pipeline integrate with the perform_ask function? What happens if input validation fails?",
+      "reference_answer": "In perform_ask, input guardrails run first via validate_input(). If any check fails (empty, too long, injection, out of scope), the function immediately returns with status 'blocked_by_guardrail' and the guardrail message as the answer — no retrieval or LLM calls are made. After generation, output guardrails run via validate_output() to check for empty output, error leakage, and groundedness. This prevents wasting resources on invalid requests.",
+      "code_tests": null
+    },
+    {
+      "id": 16,
+      "category": "Bug Analysis",
+      "question": "A user reports that uploaded documents are not being retrieved. What could cause this and how would you debug it?",
+      "reference_answer": "Possible causes: 1) Ingestion service not running — check docker compose ps, 2) Retrieval service unhealthy — check /health, 3) Embedding generation failing — check Ollama connectivity, 4) ChromaDB volume issue — check data persistence, 5) Relevance threshold too high — chunks below 0.25 are filtered. Debug: check ingestion response for chunk count, check retrieval /stats for indexed docs, check /retrieve with a known query, inspect similarity scores, check logs.",
+      "code_tests": null
+    },
+    {
+      "id": 17,
+      "category": "Bug Analysis",
+      "question": "The LLM is generating responses very slowly (30+ seconds). What are the possible causes and fixes?",
+      "reference_answer": "Possible causes: 1) Multiple models loaded — set OLLAMA_MAX_LOADED_MODELS=1, 2) High context length — reduce NUM_CTX from 4096, 3) High predict length — reduce NUM_PREDICT from 512, 4) Insufficient RAM — check system resources, 5) Cold model load — first request loads model into memory (check ollama_load_duration), 6) CPU-only inference on large model. Fixes: use one model at a time, set OLLAMA_KEEP_ALIVE=0, reduce context window, monitor latency telemetry.",
+      "code_tests": null
+    },
+    {
+      "id": 18,
+      "category": "Bug Analysis",
+      "question": "The embedding model appears in the chat model dropdown. What is the bug and how do you fix it?",
+      "reference_answer": "Bug: The /models endpoint is not filtering out nomic-embed-text from the generation model list. Fix: In services/llm_service.py, the list_models() function should filter models where the name contains 'embed' or matches EMBEDDING_MODELS set. Check that the filter condition correctly handles both 'nomic-embed-text' and 'nomic-embed-text:latest' variants.",
+      "code_tests": null
+    },
+    {
+      "id": 19,
+      "category": "Bug Analysis",
+      "question": "RAG retrieval returns results but the LLM answer doesn't use the retrieved context. What is the issue?",
+      "reference_answer": "Possible issues: 1) Context not being passed to LLM — check if context is assembled from retrieval results, 2) Grounded prompt template not used — verify GROUNDED_PROMPT_TEMPLATE is applied when context exists, 3) Context too long and truncated — check num_ctx setting, 4) Model ignoring instructions — try lower temperature, 5) Retrieved chunks have low similarity (below threshold) so context is empty. Debug: log the actual prompt sent to Ollama.",
+      "code_tests": null
+    },
+    {
+      "id": 20,
+      "category": "Bug Analysis",
+      "question": "Docker compose starts but the app container keeps restarting. How do you diagnose and fix this?",
+      "reference_answer": "Diagnosis: 1) Check logs: docker compose logs app --tail=50, 2) Look for Python import errors, syntax errors, or missing modules, 3) Check if services it depends on are healthy, 4) Verify environment variables in .env, 5) Run python3 -m py_compile app.py to check syntax, 6) Check if required directories exist (uploads, evaluation, static). Common fix: resolve import errors, ensure all dependencies in requirements.txt, fix env var references.",
+      "code_tests": null
+    },
+    {
+      "id": 21,
+      "category": "Code Generation",
+      "question": "Write a Python function that chunks text into overlapping segments of a given size.",
+      "reference_answer": "def chunk_text(text, chunk_size=500, overlap=50):\n    chunks = []\n    start = 0\n    while start < len(text):\n        end = min(start + chunk_size, len(text))\n        chunks.append(text[start:end])\n        start = end - overlap\n        if start + overlap >= len(text):\n            break\n    return chunks",
+      "code_tests": [
+        "result = chunk_text('abcdefghij', 5, 2)\nassert len(result) >= 2",
+        "result = chunk_text('hello world', 20, 5)\nassert result == ['hello world']",
+        "result = chunk_text('', 5, 2)\nassert result == [] or result == ['']"
+      ]
+    },
+    {
+      "id": 22,
+      "category": "Code Generation",
+      "question": "Write a Python function to calculate cosine similarity between two lists of numbers.",
+      "reference_answer": "import math\n\ndef cosine_similarity(vec_a, vec_b):\n    dot_product = sum(a * b for a, b in zip(vec_a, vec_b))\n    magnitude_a = math.sqrt(sum(a ** 2 for a in vec_a))\n    magnitude_b = math.sqrt(sum(b ** 2 for b in vec_b))\n    if magnitude_a == 0 or magnitude_b == 0:\n        return 0.0\n    return dot_product / (magnitude_a * magnitude_b)",
+      "code_tests": [
+        "assert abs(cosine_similarity([1, 0], [1, 0]) - 1.0) < 0.01",
+        "assert abs(cosine_similarity([1, 0], [0, 1]) - 0.0) < 0.01",
+        "assert cosine_similarity([0, 0], [1, 1]) == 0.0"
+      ]
+    },
+    {
+      "id": 23,
+      "category": "Code Generation",
+      "question": "Write a FastAPI health check endpoint that returns service status, version, and uptime.",
+      "reference_answer": "from fastapi import FastAPI\nimport time\n\napp = FastAPI()\nSTART_TIME = time.time()\n\n@app.get('/health')\ndef health():\n    return {\n        'status': 'healthy',\n        'version': '1.0.0',\n        'uptime_seconds': round(time.time() - START_TIME, 2)\n    }",
+      "code_tests": [
+        "assert 'health' in dir() or callable(health)"
+      ]
+    },
+    {
+      "id": 24,
+      "category": "Code Generation",
+      "question": "Write a Python function that extracts text from a PDF file using PyPDF2.",
+      "reference_answer": "from PyPDF2 import PdfReader\n\ndef extract_pdf_text(file_path):\n    reader = PdfReader(file_path)\n    text = ''\n    for page in reader.pages:\n        page_text = page.extract_text()\n        if page_text:\n            text += page_text + '\\n'\n    return text.strip()",
+      "code_tests": null
+    },
+    {
+      "id": 25,
+      "category": "Code Generation",
+      "question": "Write a Python function that validates input against prompt injection patterns using regex.",
+      "reference_answer": "import re\n\ndef detect_injection(text):\n    patterns = [\n        r'ignore\\s+previous\\s+instructions',\n        r'system\\s*prompt',\n        r'jailbreak',\n        r'bypass\\s+safety'\n    ]\n    for pattern in patterns:\n        if re.search(pattern, text.lower()):\n            return True, pattern\n    return False, None",
+      "code_tests": [
+        "is_inj, _ = detect_injection('ignore previous instructions')\nassert is_inj == True",
+        "is_inj, _ = detect_injection('What is Docker?')\nassert is_inj == False",
+        "is_inj, _ = detect_injection('jailbreak the system')\nassert is_inj == True"
+      ]
+    },
+    {
+      "id": 26,
+      "category": "Refactoring",
+      "question": "Refactor this code to reduce duplication:\n```python\ndef get_pdf_text(path):\n    f = open(path, 'rb')\n    text = ''\n    # ... extract ...\n    f.close()\n    return text\n\ndef get_txt_text(path):\n    f = open(path, 'r')\n    text = f.read()\n    f.close()\n    return text\n```",
+      "reference_answer": "def read_file(path, mode='r'):\n    with open(path, mode) as f:\n        return f.read()\n\ndef get_pdf_text(path):\n    content = read_file(path, 'rb')\n    # ... extract from content ...\n    return text\n\ndef get_txt_text(path):\n    return read_file(path, 'r')\n\n# Uses context manager (with) for proper file handling and extracts common file reading into a shared function.",
+      "code_tests": null
+    },
+    {
+      "id": 27,
+      "category": "Refactoring",
+      "question": "Refactor this health check to be more maintainable:\n```python\n@app.get('/health')\ndef health():\n    try:\n        r1 = requests.get('http://svc1:8001/health')\n        s1 = 'ok' if r1.status_code == 200 else 'error'\n    except:\n        s1 = 'down'\n    try:\n        r2 = requests.get('http://svc2:8002/health')\n        s2 = 'ok' if r2.status_code == 200 else 'error'\n    except:\n        s2 = 'down'\n    return {'svc1': s1, 'svc2': s2}\n```",
+      "reference_answer": "import httpx\n\nSERVICES = {\n    'retrieval': 'http://svc1:8001/health',\n    'llm': 'http://svc2:8002/health'\n}\n\ndef check_service(name, url):\n    try:\n        r = httpx.get(url, timeout=5.0)\n        return 'healthy' if r.status_code == 200 else 'error'\n    except Exception:\n        return 'unreachable'\n\n@app.get('/health')\ndef health():\n    statuses = {name: check_service(name, url) for name, url in SERVICES.items()}\n    all_ok = all(s == 'healthy' for s in statuses.values())\n    return {'status': 'healthy' if all_ok else 'degraded', 'services': statuses}",
+      "code_tests": null
+    },
+    {
+      "id": 28,
+      "category": "Refactoring",
+      "question": "Refactor this chunking code to use a configurable overlap and sentence boundary detection:\n```python\ndef chunk(text):\n    chunks = []\n    for i in range(0, len(text), 500):\n        chunks.append(text[i:i+500])\n    return chunks\n```",
+      "reference_answer": "def chunk_text(text, size=500, overlap=50):\n    text = ' '.join(text.split())  # normalize whitespace\n    if len(text) <= size:\n        return [text]\n    chunks = []\n    start = 0\n    while start < len(text):\n        end = start + size\n        chunk = text[start:end]\n        # Try to break at sentence boundary\n        if end < len(text):\n            last_period = chunk.rfind('.')\n            if last_period > size * 0.5:\n                chunk = text[start:start + last_period + 1]\n                end = start + last_period + 1\n        chunks.append(chunk.strip())\n        start = end - overlap\n    return [c for c in chunks if c]",
+      "code_tests": null
+    },
+    {
+      "id": 29,
+      "category": "Refactoring",
+      "question": "Improve this guardrail implementation to use a pattern list instead of hardcoded checks:\n```python\ndef check(q):\n    if 'ignore previous' in q.lower():\n        return False\n    if 'system prompt' in q.lower():\n        return False\n    if 'jailbreak' in q.lower():\n        return False\n    return True\n```",
+      "reference_answer": "import re\n\nINJECTION_PATTERNS = [\n    r'ignore\\s+previous',\n    r'system\\s*prompt',\n    r'jailbreak',\n    r'bypass\\s+safety',\n    r'DAN\\s+mode',\n]\n\ndef check_injection(question):\n    q_lower = question.lower()\n    for pattern in INJECTION_PATTERNS:\n        if re.search(pattern, q_lower):\n            return False, pattern\n    return True, None\n\n# Benefits: patterns are configurable, regex supports flexible matching,\n# easy to add new patterns without code changes, returns which pattern matched.",
+      "code_tests": null
+    },
+    {
+      "id": 30,
+      "category": "Refactoring",
+      "question": "Refactor this Docker Compose configuration to use environment variables instead of hardcoded values:\n```yaml\nservices:\n  app:\n    environment:\n      - OLLAMA_URL=http://192.168.1.100:11434\n      - MODEL=qwen2.5:3b\n      - THRESHOLD=0.25\n```",
+      "reference_answer": "# Use .env file and variable substitution:\n# .env\n# OLLAMA_BASE_URL=http://host.docker.internal:11434\n# DEFAULT_MODEL=qwen2.5:3b\n# RELEVANCE_THRESHOLD=0.25\n\nservices:\n  app:\n    environment:\n      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}\n      - DEFAULT_MODEL=${DEFAULT_MODEL:-qwen2.5:3b}\n      - RELEVANCE_THRESHOLD=${RELEVANCE_THRESHOLD:-0.25}\n\n# Benefits: configuration separated from code, defaults provided with :- syntax,\n# .env.example documents all variables, no hardcoded IPs.",
+      "code_tests": null
+    },
+    {
+      "id": 31,
+      "category": "RAG based Question",
+      "question": "What is the ingestion pipeline and how does a document go from upload to being searchable?",
+      "reference_answer": "The ingestion pipeline processes documents for the knowledge base through these steps: 1) Extraction — read text from PDF (using PyPDF2), TXT, or MD files, 2) Normalization — clean and standardize text by collapsing whitespace, 3) Chunking — split into overlapping chunks (default 500 chars, 50 overlap), 4) Embedding — convert each chunk to a vector using nomic-embed-text via Ollama, 5) Indexing — store chunks with embeddings and metadata (source, page, chunk_index, document_id) in ChromaDB. Important: uploading does NOT train or fine-tune the LLM.",
+      "code_tests": null
+    },
+    {
+      "id": 32,
+      "category": "RAG based Question",
+      "question": "How does the grounded prompt template work and why is it important for RAG?",
+      "reference_answer": "The grounded prompt template instructs the LLM to: 1) Use provided context as primary evidence, 2) Not invent facts unsupported by context, 3) Clearly state when insufficient information is available, 4) Answer directly and concisely, 5) Reference sources when citing. This is important because without grounding instructions, the LLM might ignore retrieved context and hallucinate, defeating the purpose of RAG.",
+      "code_tests": null
+    },
+    {
+      "id": 33,
+      "category": "RAG based Question",
+      "question": "What are the health check endpoints for each service and what information do they return?",
+      "reference_answer": "Each service has a GET /health endpoint: App (:8000) returns overall status, service versions, and sub-service health. Retrieval (:8001) returns collection name, document count, embedding model. LLM (:8002) returns Ollama connectivity, available models, default model. Ingestion (:8003) returns retrieval connectivity, chunk configuration, supported formats. Code Runner (:8004) returns execution timeout and service status.",
+      "code_tests": null
+    },
+    {
+      "id": 34,
+      "category": "RAG based Question",
+      "question": "What Docker volumes are used in the project and why is 'docker compose down -v' dangerous?",
+      "reference_answer": "The project uses a chroma-data Docker volume for ChromaDB persistent storage and bind mounts for uploads, evaluation, static files, and knowledge base. 'docker compose down -v' removes volumes including chroma-data, which permanently deletes all indexed knowledge base data, uploaded documents' embeddings, and any evaluation results stored in ChromaDB. Use 'docker compose down' without -v to preserve data.",
+      "code_tests": null
+    },
+    {
+      "id": 35,
+      "category": "RAG based Question",
+      "question": "How does the RAG vs Non-RAG comparison work in this application and what differences should be observed?",
+      "reference_answer": "The application supports RAG ON/OFF via the rag_enabled toggle. With RAG ON: question → embedding → ChromaDB search → filter by relevance threshold → assemble context → grounded prompt → LLM generates answer using context → returns sources and similarity scores. With RAG OFF: question → direct prompt → LLM answers from training knowledge only. Expected differences: RAG provides domain-specific accuracy with source attribution but higher latency; Non-RAG is faster but may hallucinate specific details.",
+      "code_tests": null
+    }
+  ]
+}

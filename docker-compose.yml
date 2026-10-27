@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aiops-app
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - RETRIEVAL_URL=http://retrieval:8001
+      - LLM_URL=http://llm:8002
+      - INGESTION_URL=http://ingestion:8003
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-qwen2.5:3b}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-nomic-embed-text:latest}
+      - GENERATION_MODELS=${GENERATION_MODELS:-qwen2.5:3b,starcoder2:3b,codellama:latest}
+      - RELEVANCE_THRESHOLD=${RELEVANCE_THRESHOLD:-0.25}
+      - DEFAULT_TOP_K=${DEFAULT_TOP_K:-5}
+      - MAX_INPUT_LENGTH=${MAX_INPUT_LENGTH:-2000}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./evaluation:/app/evaluation
+      - ./docs:/app/docs
+      - ./static:/app/static
+      - ./knowledge_base:/app/knowledge_base
+      - ./services:/app/services
+      - ./app.py:/app/app.py
+    depends_on:
+      - retrieval
+      - llm
+      - ingestion
+    networks:
+      - aiops-network
+    restart: unless-stopped
+
+  retrieval:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aiops-retrieval
+    command: ["uvicorn", "services.retrieval_service:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    ports:
+      - "8001:8001"
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-nomic-embed-text:latest}
+      - CHROMA_PERSIST_DIR=/app/data/chroma
+    volumes:
+      - chroma-data:/app/data/chroma
+      - ./services:/app/services
+    networks:
+      - aiops-network
+    restart: unless-stopped
+
+  llm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aiops-llm
+    command: ["uvicorn", "services.llm_service:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+    ports:
+      - "8002:8002"
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-qwen2.5:3b}
+      - NUM_CTX=${NUM_CTX:-4096}
+      - NUM_PREDICT=${NUM_PREDICT:-512}
+      - TEMPERATURE=${TEMPERATURE:-0.1}
+    volumes:
+      - ./services:/app/services
+    networks:
+      - aiops-network
+    restart: unless-stopped
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aiops-ingestion
+    command: ["uvicorn", "services.ingestion_service:app", "--host", "0.0.0.0", "--port", "8003", "--reload"]
+    ports:
+      - "8003:8003"
+    environment:
+      - RETRIEVAL_URL=http://retrieval:8001
+      - CHUNK_SIZE=${CHUNK_SIZE:-500}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP:-50}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./knowledge_base:/app/knowledge_base
+      - ./services:/app/services
+    depends_on:
+      - retrieval
+    networks:
+      - aiops-network
+    restart: unless-stopped
+
+volumes:
+  chroma-data:
+    driver: local
+
+networks:
+  aiops-network:
+    driver: bridge
